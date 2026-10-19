@@ -1,0 +1,56 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import EmailReveal from '../components/EmailReveal.astro';
+import { profile } from '../data/profile';
+const sections = await getCollection('sections');
+const content = Object.fromEntries(await Promise.all(sections.map(async entry => [entry.id, { ...entry.data, ...(await render(entry)) }])));
+const papers = await Promise.all((await getCollection('publications')).sort((a,b) => b.data.year-a.data.year || a.id.localeCompare(b.id)).map(async entry => ({ ...entry, ...(await render(entry)) })));
+const About = content.about.Content;
+const News = content.news.Content;
+const Research = content.research.Content;
+const Education = content.education.Content;
+const Awards = content.awards.Content;
+const presentations = [...(sections.find(entry => entry.id === 'conferences')?.data.presentations ?? [])].sort((a, b) => b.date.localeCompare(a.date));
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+<Layout>
+  <div class="page-layout" id="top">
+    <aside class="profile" aria-label="プロフィール">
+      <div class="monogram" aria-hidden="true">{profile.initials}</div>
+      <h1>{profile.name}</h1>
+      <p class="name-ja">{profile.nameJa}</p>
+      <p class="role">{profile.role}</p>
+      <div class="affiliation">
+        <p>{profile.universityUrl ? <a href={profile.universityUrl}>{profile.university}</a> : profile.university}</p>
+        <p>{profile.labUrl ? <a href={profile.labUrl}>{profile.lab}</a> : profile.lab}</p>
+      </div>
+      <p class="location">{profile.location}</p>
+      <a class="email-link" href="#contact">Email <span aria-hidden="true">↓</span></a>
+      <div class="profile-links">{profile.links.filter(link => link.url).map(link => <a href={link.url}>{link.label} <span aria-hidden="true">↗</span></a>)}</div>
+    </aside>
+    <main id="main">
+      <section id="about" class="about"><h2>{content.about.title}</h2><div class="prose"><About /></div></section>
+      <!-- <section id="news"><div class="section-heading"><h2>{content.news.title}</h2><span>近況</span></div><div class="prose news"><News /></div></section>
+      <section id="research"><div class="section-heading"><h2>{content.research.title}</h2><span>研究内容</span></div><div class="prose research"><Research /></div></section> -->
+      <section id="publications"><div class="section-heading"><h2>Publications</h2><span>研究業績</span></div>
+        {papers.length ? <ol class="publications">{papers.map(({data, Content}) => <li><div class="publication-meta"><span>{data.year}</span>{data.sample && <span class="sample">記入例 / Sample</span>}</div><h3>{data.title}</h3><p class="authors">{data.authors}</p><p class="venue">{data.venue}, {data.year}</p><div class="prose abstract"><Content /></div>{data.links.length > 0 && <div class="paper-links">{data.links.map(link => <a href={link.url}>{link.label} ↗</a>)}</div>}</li>)}</ol> : <p class="empty-state">公開できる研究業績を、こちらに掲載します。</p>}
+      </section>
+      <section id="awards"><div class="section-heading"><h2>{content.awards.title}</h2><span>受賞歴</span></div><div class="prose activity"><Awards /></div></section>
+      <section id="conferences"><div class="section-heading"><h2>{content.conferences.title}</h2><span>学会発表</span></div>
+        {presentations.length ? <ol class="presentations">{presentations.map(talk => <li>
+          <div class="presentation-meta"><time datetime={talk.date.replace('.', '-')}>{talk.date}</time><span>{talk.type}</span></div>
+          <h3>{talk.url ? <a href={talk.url}>{talk.title}</a> : talk.title}</h3>
+          <dl class="presentation-details">
+            <div><dt>著者</dt><dd>{talk.authors.join(', ')}</dd></div>
+            <div><dt>学会</dt><dd>{talk.conference}</dd></div>
+            <div><dt>開催地</dt><dd>{talk.location}</dd></div>
+          </dl>
+          {talk.links.length > 0 && <div class="paper-links">{talk.links.map(link => <a href={link.url}>{link.label} ↗</a>)}</div>}
+        </li>)}</ol> : <p class="empty-state">公開できる学会発表を、こちらに掲載します。</p>}
+      </section>
+      <section id="education"><div class="section-heading"><h2>{content.education.title}</h2><span>経歴</span></div><div class="prose education"><Education /></div>{profile.cvFile && <a class="cv-link" href={`${base}${profile.cvFile}`}>Curriculum Vitae (PDF) ↗</a>}</section>
+      <section id="contact"><div class="section-heading"><h2>Contact</h2><span>連絡先</span></div><p class="contact-copy">研究に関するご連絡は、メールでお気軽にどうぞ。</p><EmailReveal /></section>
+    </main>
+  </div>
+</Layout>

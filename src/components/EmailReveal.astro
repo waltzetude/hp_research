@@ -1,0 +1,24 @@
+---
+import { profile } from '../data/profile';
+// 単純なHTML収集への対策。暗号化ではなく、JSを実行する収集者は復元できます。
+const encoded = Array.from(profile.email, char => char.codePointAt(0)! + 17).join('.');
+---
+<div class="email-reveal" aria-live="polite">
+  <button type="button" class="email-reveal-button" data-email-parts={encoded}>メールアドレスを表示</button>
+  <noscript><p class="contact-copy">メールアドレスを表示するにはJavaScriptを有効にしてください。</p></noscript>
+</div>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-email-parts]').forEach(button => {
+    button.addEventListener('click', () => {
+      const encoded = button.dataset.emailParts;
+      if (!encoded) return;
+      const address = encoded.split('.').map(part => String.fromCodePoint(Number(part) - 17)).join('');
+      const link = document.createElement('a');
+      link.className = 'contact-email';
+      link.href = `mailto:${address}`;
+      link.textContent = address;
+      button.replaceWith(link);
+      link.focus();
+    }, { once: true });
+  });
+</script>
