@@ -8,7 +8,7 @@ export const profile = {
   lab: 'Mathematical Cryptography Laboratory',
   labUrl: 'https://crypto.mist.i.u-tokyo.ac.jp/',
   location: 'Japan',
-  email: 'tokuda-hinata@g.ecc.u-tokyo.ac.jp',
+  email: 'tokuda-hinata[at]g.ecc.u-tokyo.ac.jp',
   description: 'Thank you for visiting! I\'m Hinata Tokuda, a first-year master student at the University of tokyo, studying Post-Quantum Cryptogrpahy (PQC) under Prof.Takagi',
   // URLを設定するとリンクが表示されます。未設定のままでも動作します。
   links: [
